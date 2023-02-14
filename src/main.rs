@@ -14,7 +14,7 @@ enum FsEntry {
 struct Args {
     /// The directory to watch
     #[clap(value_parser)]
-    directory: String,
+    directories: Vec<String>,
 }
 
 fn main() {
@@ -22,15 +22,17 @@ fn main() {
     let args = Args::parse();
 
     log::info!("Scanning directory");
-    let dir_map = scan_directory(&args.directory);
+    let dir_maps = args.directories.iter().map(|d| scan_directory(d)).collect::<Vec<FsEntry>>();
 
     log::info!("Monitoring");
     loop {
-        match scan_for_changes(&dir_map) {
-            Ok(()) => {},
-            Err(e) => {
-                log::error!("Error occurred while scanning directory");
-                log::error!("{e:?}");
+        for dir_map in &dir_maps {
+            match scan_for_changes(&dir_map) {
+                Ok(()) => {},
+                Err(e) => {
+                    log::error!("Error occurred while scanning directory");
+                    log::error!("{e:?}");
+                }
             }
         }
         thread::sleep(Duration::from_secs_f32(0.5));
