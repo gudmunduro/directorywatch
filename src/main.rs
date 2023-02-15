@@ -82,6 +82,13 @@ fn scan_for_changes(directory: &FsEntry) -> Result<()> {
                 handle_diff_entry(diff_entry, fs::metadata(diff_entry)?.is_dir())?;
             }
 
+
+            for entry in entries {
+                match entry {
+                    Directory(_, _) => scan_for_changes(entry)?,
+                    _ => ()
+                }
+            }
         }
         File(_) => {}
     }
